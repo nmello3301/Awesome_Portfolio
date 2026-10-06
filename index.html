@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}</style>
+<title>Nicolas Mello · Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: a fixed full-bleed video stage scrubbed by page scroll; overlays live in the video's own
+   coordinate space (1u = 1% of the displayed video width) so they stay glued to the scene. */
+:root {
+  color-scheme: dark;
+  --night: #07090c;          /* page ground behind the video */
+  --holo: #8ff4ff;           /* hologram light */
+  --holo-edge: rgba(150, 245, 255, .78);
+  --holo-glass: rgba(3, 20, 28, .58);
+  --holo-text: #e9fdff;
+  --lamp: #ffb767;           /* warm workshop-lamp accent for the HUD */
+  --graphite: rgba(38, 33, 28, .9);   /* printed ink on the pinned papers (slightly translucent so paper light shows) */
+  --marker-blue: rgba(26, 82, 176, .92);   /* the three markers on the whiteboard tray */
+  --marker-red: rgba(190, 44, 38, .92);
+  --marker-green: rgba(38, 132, 70, .92);
+  --paper: #f1ece2;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --f-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+}
+html { background: var(--night); scroll-snap-type: y proximity; }
+body { background: var(--night); color: var(--holo-text); font-family: var(--f-body); }
+
+#stage { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+#vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--night); }
+#layer { position: absolute; left: 0; top: 0; pointer-events: none; }
+#beams { position: absolute; left: 0; top: 0; overflow: visible; }
+#track { position: relative; z-index: 1; pointer-events: none; }
+.snap { position: absolute; left: 0; width: 1px; height: 1px; scroll-snap-align: start; }
+
+/* ---------- holograms ---------- */
+.holo {
+  position: absolute; left: 0; top: 0; visibility: hidden; box-sizing: border-box;
+  padding: calc(var(--u) * 1.5) calc(var(--u) * 1.7);
+  background:
+    linear-gradient(180deg, rgba(120, 240, 255, .13), rgba(60, 170, 210, .05) 60%, rgba(120, 240, 255, .10)),
+    var(--holo-glass);
+  border: 1px solid var(--holo-edge);
+  box-shadow: 0 0 calc(var(--u) * 2.2) rgba(90, 230, 255, .38), inset 0 0 calc(var(--u) * 2.6) rgba(90, 230, 255, .20);
+  backdrop-filter: blur(5px) saturate(1.15);
+  -webkit-backdrop-filter: blur(5px) saturate(1.15);
+  color: var(--holo-text);
+  font-size: calc(var(--u) * 1.02);
+  line-height: 1.45;
+  transform-origin: 50% 100%;
+}
+.holo::before { /* scanlines */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(170, 250, 255, .07) 0 1px, transparent 1px 3px);
+}
+.holo::after { /* slow sweep line */
+  content: ""; position: absolute; left: 0; right: 0; height: 18%; top: -18%; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(160, 250, 255, .10), transparent);
+  animation: sweep 4.5s linear infinite;
+}
+@keyframes sweep { to { top: 100%; } }
+.holo .c { position: relative; animation: flicker 6s steps(1) infinite; }
+@keyframes flicker { 0%, 100% { opacity: 1 } 41% { opacity: .86 } 42% { opacity: 1 } 77% { opacity: .9 } 77.5% { opacity: 1 } }
+.corner { position: absolute; width: calc(var(--u) * 1.1); height: calc(var(--u) * 1.1); border: 2px solid var(--holo); }
+.corner.tl { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
+.corner.tr { right: -3px; top: -3px; border-left: 0; border-bottom: 0; }
+.corner.bl { left: -3px; bottom: -3px; border-right: 0; border-top: 0; }
+.corner.br { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+
+.eyebrow { font-family: var(--f-mono); font-size: .74em; letter-spacing: .14em; text-transform: uppercase; color: var(--holo); opacity: .9; display: flex; justify-content: space-between; gap: 1em; }
+.holo h2 { font-family: var(--f-display); font-weight: 600; font-size: 2.05em; line-height: 1.05; margin: .25em 0 .55em; letter-spacing: .01em; text-wrap: balance; text-shadow: 0 0 .5em rgba(120, 240, 255, .55); }
+.holo h3 { font-family: var(--f-display); font-weight: 500; font-size: 1.18em; margin: 0; letter-spacing: .02em; }
+.holo p { margin: .2em 0 0; color: rgba(233, 253, 255, .86); }
+.rows { display: grid; gap: .85em; }
+.row { display: grid; gap: .1em; padding-top: .75em; border-top: 1px solid rgba(150, 245, 255, .25); }
+.tags { font-family: var(--f-mono); font-size: .74em; color: var(--holo); letter-spacing: .05em; margin-top: .25em; }
+.when { font-family: var(--f-mono); font-size: .78em; color: var(--holo); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: .45em; margin-top: .9em; }
+.chips span { font-family: var(--f-mono); font-size: .76em; padding: .25em .6em; border: 1px solid rgba(150, 245, 255, .45); color: var(--holo); }
+.placeholder { font-family: var(--f-mono); font-size: .68em; letter-spacing: .08em; text-transform: uppercase; color: var(--lamp); opacity: .85; }
+
+#holo0 { text-align: center; padding-block: calc(var(--u) * 1.8); }
+#holo0 h1 { font-family: var(--f-display); font-weight: 600; font-size: calc(var(--u) * 4.1); line-height: 1; margin: .2em 0 .25em; text-wrap: balance; text-shadow: 0 0 .35em rgba(120, 240, 255, .6); }
+#holo0 .who { font-size: 1.25em; color: rgba(233, 253, 255, .9); }
+#holo0 .eyebrow { justify-content: center; }
+
+/* ---------- pinned paper + whiteboard ---------- */
+.sheet { position: absolute; left: 0; top: 0; transform-origin: 0 0; visibility: hidden; box-sizing: border-box; color: var(--graphite); font-family: var(--f-mono); backface-visibility: hidden; }
+.sheet.paper { padding: 14px 18px; font-size: 16px; line-height: 1.45; background: var(--bk, rgba(205,170,140,.92)); box-shadow: inset 0 0 18px rgba(60,35,15,.18); border-radius: 2px; }
+#paperC { padding-block: 18px; }
+.sheet.paper h4 { font-family: var(--f-mono); font-weight: 500; font-size: 1.35em; line-height: 1.25; margin: 0 0 .45em; letter-spacing: .02em; }
+.sheet.paper ul { margin: 0; padding-left: 1.1em; }
+.sheet.paper li { margin: .15em 0; }
+.sheet.paper .small { font-size: .82em; opacity: .75; margin-top: .8em; }
+.sheet.board { padding: 30px 40px; font-family: var(--f-hand); font-size: 30px; line-height: 1.15; }
+.sheet.board .big { font-size: 2em; font-weight: 700; color: var(--marker-blue); margin: 0 0 .25em; }
+.sheet.board .line { color: var(--marker-red); }
+.sheet.board .line.g { color: var(--marker-green); }
+.sheet.board .line.b { color: var(--marker-blue); }
+.sheet.board .u { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+/* ---------- HUD ---------- */
+#rail { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; z-index: 3; display: flex; align-items: flex-end; gap: 4px; pointer-events: auto; max-width: calc(100vw - 32px); }
+#rail button {
+  all: unset; cursor: pointer; display: grid; justify-items: center; gap: 6px;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(240, 236, 228, .66); padding: 6px 8px; text-shadow: 0 1px 6px rgba(0, 0, 0, .85);
+}
+#rail button::before { content: ""; width: 18px; height: 2px; background: currentColor; transition: width .25s; box-shadow: 0 0 6px rgba(0, 0, 0, .6); }
+#rail button:hover, #rail button:focus-visible { color: #fff; }
+#rail button:focus-visible { outline: 1px solid var(--lamp); outline-offset: 2px; }
+#rail button[aria-current="step"] { color: var(--lamp); }
+#rail button[aria-current="step"]::before { width: 100%; }
+#rail .fc { font-family: var(--f-mono); font-size: 10px; color: rgba(240, 236, 228, .5); padding: 6px 0 6px 10px; font-variant-numeric: tabular-nums; letter-spacing: .08em; white-space: nowrap; text-shadow: 0 1px 6px rgba(0, 0, 0, .85); }
+
+#hint { position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; z-index: 3; font-family: var(--f-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: rgba(240, 236, 228, .8); text-shadow: 0 1px 8px rgba(0, 0, 0, .9); display: grid; justify-items: center; gap: 8px; transition: opacity .4s; }
+#hint i { display: block; width: 1px; height: 28px; background: linear-gradient(var(--lamp), transparent); animation: drip 1.8s ease-in-out infinite; }
+@keyframes drip { 0% { transform: scaleY(0); transform-origin: top } 50% { transform: scaleY(1); transform-origin: top } 51% { transform-origin: bottom } 100% { transform: scaleY(0); transform-origin: bottom } }
+
+#loader { position: fixed; left: calc(16px + env(safe-area-inset-left, 0px)); top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 3; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(240, 236, 228, .8); text-shadow: 0 1px 6px rgba(0, 0, 0, .9); transition: opacity .5s; }
+
+/* ---------- content additions ---------- */
+[hidden] { display: none !important; }
+#holo0 .name { font-family: var(--f-display); font-weight: 600; font-size: 1.9em; letter-spacing: .02em; margin-top: .1em; }
+#holo0 .who { font-family: var(--f-mono); font-size: 1em; letter-spacing: .12em; text-transform: uppercase; color: var(--holo); }
+.holo a, .sheet a, #sound { pointer-events: auto; }
+.holo a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(150, 245, 255, .45); }
+.holo a:hover, .holo a:focus-visible { color: #fff; border-bottom-color: var(--holo); }
+.holo a.more { display: inline-block; margin-top: 1em; font-family: var(--f-mono); font-size: .82em; letter-spacing: .08em; text-transform: uppercase; color: var(--holo); }
+#holo1 .row h3 { font-size: 1.05em; }
+#holo1 .row p { font-size: .92em; }
+.hw { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 1.2em; align-items: end; }
+.hw figure { margin: 0; display: grid; gap: .35em; }
+.hw img { display: block; height: calc(var(--u) * 15); width: auto; max-width: none; border: 1px solid rgba(150, 245, 255, .55); box-shadow: 0 0 calc(var(--u) * .8) rgba(90, 230, 255, .3); }
+.hw figcaption { font-family: var(--f-mono); font-size: .72em; letter-spacing: .06em; color: var(--holo); }
+.hw h2 { font-size: 1.7em; }
+.sheet a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.sheet.board a { text-decoration: none; }
+.sheet .stack { margin: 0; line-height: 1.55; letter-spacing: .02em; }
+#paperA li, #paperC li { margin: .25em 0; }
+#paperB { display: flex; flex-direction: column; padding: 12px 14px; }
+#paperB h4 { margin-bottom: .35em; }
+#paperB .photo { flex: 1 1 auto; min-height: 0; width: 100%; object-fit: cover; object-position: 50% 30%; border: 3px solid #f4efe6; box-shadow: 0 1px 3px rgba(40, 20, 5, .35); filter: sepia(.12) saturate(.95); }
+#paperB .caption { margin: .45em 0 0; font-size: .82em; line-height: 1.3; }
+.docked #paperB .photo { flex: none; height: 180px; }
+.sheet.pinned { background: #e9ddc9; box-shadow: 0 6px 14px rgba(25, 12, 4, .45), inset 0 0 22px rgba(120, 80, 40, .18); }
+.sheet.pinned::before { content: ""; position: absolute; left: 50%; top: 8px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff8a7a, #b8231b 60%, #6e0f0a); box-shadow: 0 2px 3px rgba(0, 0, 0, .45); }
+.sheet.pinned h4 { margin-top: 10px; }
+#music { position: fixed; left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 4; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+#sound { all: unset; box-sizing: border-box; position: relative; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  color: rgba(240, 236, 228, .9); background: rgba(8, 10, 12, .45); border: 1px solid rgba(240, 236, 228, .45);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0, 0, 0, .45); transition: color .25s, border-color .25s, box-shadow .25s; }
+#sound svg { width: 20px; height: 20px; }
+#sound .slash { position: absolute; width: 26px; height: 2px; background: currentColor; transform: rotate(-45deg); border-radius: 2px; opacity: .9; }
+#sound[aria-pressed="true"] { color: var(--lamp); border-color: var(--lamp); box-shadow: 0 0 0 0 rgba(255, 183, 103, .45), 0 2px 10px rgba(0, 0, 0, .45); animation: beat 2.4s ease-out infinite; }
+#sound[aria-pressed="true"] .slash { display: none; }
+#sound:hover { border-color: #fff; }
+#sound:focus-visible { outline: 2px solid var(--lamp); outline-offset: 3px; }
+@keyframes beat { 0% { box-shadow: 0 0 0 0 rgba(255, 183, 103, .45), 0 2px 10px rgba(0, 0, 0, .45); } 70%, 100% { box-shadow: 0 0 0 12px rgba(255, 183, 103, 0), 0 2px 10px rgba(0, 0, 0, .45); } }
+#music-credit { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: rgba(240, 236, 228, .85); text-shadow: 0 1px 6px rgba(0, 0, 0, .9); opacity: 0; transform: translateX(-6px); transition: opacity .4s, transform .4s; white-space: nowrap; pointer-events: none; }
+#music:hover #music-credit, #music:focus-within #music-credit, #music.show-credit #music-credit { opacity: 1; transform: none; }
+@media (max-width: 1199px) { #music-credit { display: none; } }
+.docked #music { top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; }
+.docked #sound { width: 38px; height: 38px; }
+.docked .hw { grid-template-columns: 1fr 1fr; }
+.docked .hw-text { grid-column: 1 / -1; }
+.docked .hw img { height: auto; width: 100%; max-width: 100%; }
+
+/* ---------- phone notice ---------- */
+html.gated, html.gated body { overflow: hidden; }
+html.gated #rail, html.gated #hint, html.gated #loader, html.gated #music, html.gated #layer { display: none; }
+#phone-gate { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px 16px; background: rgba(7, 9, 12, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.pg-card { width: min(100%, 420px); box-sizing: border-box; padding: 26px 22px 20px; background: rgba(10, 13, 17, .9); border: 1px solid rgba(255, 183, 103, .4); box-shadow: 0 12px 40px rgba(0, 0, 0, .55); color: #f1ece4; display: grid; gap: 12px; text-align: center; }
+.pg-eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--lamp); }
+.pg-card h2 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 24px; line-height: 1.15; text-wrap: balance; }
+.pg-card p { margin: 0; font-size: 15px; line-height: 1.5; color: rgba(241, 236, 228, .85); }
+.pg-go { display: block; margin-top: 6px; padding: 13px 16px; background: var(--lamp); color: #1b1208; font-family: var(--f-mono); font-weight: 500; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+.pg-go:focus-visible, .pg-skip:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.pg-skip { all: unset; cursor: pointer; justify-self: center; padding: 6px 4px; font-family: var(--f-mono); font-size: 12px; letter-spacing: .04em; color: rgba(241, 236, 228, .7); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- narrow / portrait: content docks to the bottom of the screen ---------- */
+.docked .sheet { box-shadow: 0 6px 24px rgba(0, 0, 0, .45); }
+.docked .sheet.paper, .docked #paperD, .docked #paperC { background: var(--paper); font-size: 13px; padding: 14px 16px; }
+.docked .sheet.board { background: #f7f8f8; border: 6px solid #b9bec4; font-size: 24px; padding: 12px 16px; }
+.docked #rail { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; }
+.docked #rail button { padding: 8px 6px; }
+.docked #rail button span { display: none; }
+.docked #rail .fc { display: none; }
+.docked #hint { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+.docked #beams { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .holo::after, .holo .c, #hint i, #sound[aria-pressed="true"] { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="stage" aria-hidden="false">
+  <video id="vid" muted playsinline preload="auto" poster="media/poster.jpg" aria-label="Camera tour through a cave workshop"></video>
+  <div id="layer">
+    <svg id="beams" aria-hidden="true">
+      <defs></defs>
+    </svg>
+
+    <!-- STOP 0 · main view · projected by the hanging orb -->
+    <section class="holo" id="holo0" data-stop="0">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="c">
+        <h1>Welcome to my Portfolio!</h1>
+        <div class="name">Nicolas Mello</div>
+        <div class="who">AI Researcher / Engineer</div>
+      </div>
+    </section>
+
+    <!-- STOP 1 · left desk (computer + 3D printer) -->
+    <section class="holo" id="holo1" data-stop="1">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="c">
+        <div class="eyebrow"><span>Software Projects</span></div>
+        <h2>Where foundation models meet robots</h2>
+        <div class="rows">
+          <div class="row">
+            <span class="when">IBM Research Brazil Lab · Jan 2024 – Dec 2025</span>
+            <h3><a href="https://github.com/ibm-granite/granite.trust.policy-tools" target="_blank" rel="noopener">Granite Trust Policy Tools ↗</a></h3>
+            <p>Contributed to Granite 4 safety through RAG systems and LoRA adapters, and managed GPU workloads on Kubernetes.</p>
+            <div class="tags">RAG · LoRA · Kubernetes · Granite 4</div>
+          </div>
+          <div class="row">
+            <span class="when">MS research · USP-IME · 2024–present</span>
+            <h3><a href="https://nmello3301.github.io/VLA-Distillation/" target="_blank" rel="noopener">Adaptive &amp; Uncertainty-Gated VLA Distillation ↗</a></h3>
+            <p>An Octo VLA teacher distilled into a compact RL student on a parallelized Franka Panda arm in IsaacSim.</p>
+            <div class="tags">PyTorch · IsaacSim · Octo · LoRA · RL</div>
+          </div>
+          <div class="row">
+            <span class="when">Ongoing</span>
+            <h3>Agent orchestration across generative AI</h3>
+            <p>Local agents orchestrating text, code, image, video, mesh generation and much more.</p>
+            <div class="tags">Agents · MCP · ComfyUI · LoRA</div>
+          </div>
+        </div>
+        <a class="more" href="https://github.com/nmello3301" target="_blank" rel="noopener">See more on my GitHub ↗</a>
+      </div>
+    </section>
+
+    <!-- STOP 2 · centre workbench, projected by the orb -->
+    <section class="holo" id="holo2" data-stop="2">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="c hw">
+        <div class="hw-text">
+          <div class="eyebrow"><span>Hardware Projects</span></div>
+          <h2>Yes, I’m building a robot at home.</h2>
+          <p>A 6-DoF robotic arm built from scratch: CAD, gearing, firmware, and the policy that drives it.</p>
+          <p>All the actuators were designed, printed and built by me.</p>
+          <div class="tags">Onshape · ESP32 · CAN Bus · IsaacSim · ManiSkill · Sim2Real</div>
+        </div>
+        <figure><img src="media/img/arm_built.jpg" alt="The 6-DoF robotic arm, assembled on a desk at home" loading="lazy"><figcaption>The arm, assembled</figcaption></figure>
+        <figure><img src="media/img/arm_sim.jpg" alt="The arm's simulation clone, used for Sim2Real" loading="lazy"><figcaption>Its Sim2Real clone</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- STOP 3 · the piano corner -->
+    <section class="holo" id="holo3" data-stop="3">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="c">
+        <div class="eyebrow"><span>About me</span></div>
+        <h2>About me</h2>
+        <p>I'm truly passionate about learning new skills and employing them towards making the world a better place.</p>
+        <p>Off the clock, I'm always trying to do interesting things, like playing the piano, the guitar, chess and other games.</p>
+        <p class="needs-audio" hidden>This song is <em>Divenire</em> (Ludovico Einaudi). It translates from Italian as roughly "to become". To me it beautifully captures the feeling of "becoming" more than I once was. With each challenge and each project, we do much more than produce a new software or robot, we become the person who created. Oddly, I often feel a weird empty feeling after a project, mixed with relief and joy, yes. But it is always when I finish that I noticed it was not the robot I wanted, but to become the person who built them.</p>
+      </div>
+    </section>
+
+    <!-- STOP 4 · pin wall: résumé, publications, current work, toolbox -->
+    <div class="sheet paper" id="paperA" data-stop="4" style="--bk: rgba(184,150,123,.93); font-size: 13px">
+      <h4>Résumé</h4>
+      <ul>
+        <li>UCSD Jacobs, BS EE with Machine-Learning depth, 2023</li>
+        <li>Masters in Computer Science and AI at USP (expected to graduate December 2026)</li>
+        <li>Worked at IBM Research Brazil Lab, 2024–2025</li>
+        <li>Danfoss Drives, International Trainee, 2023</li>
+      </ul>
+      <div class="small"><a href="https://nmello3301.github.io/nmello3301.github.io-portfolio/site-assets/cv/Nicolas-Mello-CV.pdf" target="_blank" rel="noopener">Full CV (PDF) ↗</a></div>
+    </div>
+    <div class="sheet paper" id="paperB" data-stop="4" style="--bk: rgba(181,150,124,.93); font-size: 12px">
+      <h4>Currently</h4>
+      <img class="photo" src="media/img/portrait.jpg" alt="Portrait of Nicolas Mello">
+      <p class="caption">MS thesis on VLA distillation · NS-VLA · building a 6-DoF arm</p>
+    </div>
+    <div class="sheet paper" id="paperC" data-stop="4" style="--bk: rgba(208,173,142,.93); font-size: 12.5px">
+      <h4>Check out my publications</h4>
+      <ul>
+        <li><a href="https://nmello3301.github.io/VLA-Distillation/" target="_blank" rel="noopener">Adaptive &amp; Uncertainty-Gated VLA Policy Distillation ↗</a> · ENIAC 2026</li>
+        <li><a href="https://github.com/ibm-granite/granite.trust.policy-tools/blob/main/docs/Granite-Trust-Policy-Tools.pdf" target="_blank" rel="noopener">Granite.trust Policy Tools ↗</a> · IBM Research 2026</li>
+      </ul>
+    </div>
+    <div class="sheet paper" id="paperE" data-stop="4" style="--bk: rgba(232,203,176,.93); font-size: 12px">
+      <h4>Toolbox</h4>
+      <p class="stack">Docker · CAD · CUDA · PyTorch · VLA · MCP · ComfyUI · CAN Bus · ESP32 · IsaacSim · LoRA · Kubernetes · and more</p>
+    </div>
+
+    <!-- STOP 5 · whiteboard, written in the tray's three marker colours -->
+    <div class="sheet paper" id="paperD" data-stop="5" style="--bk: rgba(178,146,121,.93); font-size: 13px">
+      <h4>Thanks for visiting!</h4>
+      <div class="small"><a href="https://nmello3301.github.io/nmello3301.github.io-portfolio/site-assets/cv/Nicolas-Mello-CV.pdf" target="_blank" rel="noopener">Download my CV ↗</a></div>
+    </div>
+    <div class="sheet board" id="board" data-stop="5">
+      <div class="big u">Let's build something awesome!</div>
+      <div class="line"><a href="mailto:n.mello3301@gmail.com">✉ n.mello3301@gmail.com</a></div>
+      <div class="line g"><a href="https://github.com/nmello3301" target="_blank" rel="noopener">github.com/nmello3301</a></div>
+      <div class="line b"><a href="https://www.linkedin.com/in/nicolas-mello3301/" target="_blank" rel="noopener">linkedin.com/in/nicolas-mello3301</a></div>
+    </div>
+    <!-- a note pinned to the board, bottom-right of the contact view -->
+    <div class="sheet paper pinned" id="paperN" data-stop="5" style="font-size: 12px">
+      <h4>How did I build this website?</h4>
+      <div class="small"><a href="#" data-todo="add the repo link">Repo on GitHub (coming soon) ↗</a></div>
+    </div>
+  </div>
+
+  <nav id="rail" aria-label="Workshop stops"></nav>
+  <div id="hint"><span>Scroll to step inside</span><i></i></div>
+  <div id="loader" role="status">Loading workshop · 0%</div>
+  <!-- background music: my recording of Divenire, looped across the whole site -->
+  <audio id="bgm" preload="none" loop>
+    <source src="media/Divenire_song.webm" type="audio/webm">
+    <source src="media/Divenire_song.m4a" type="audio/mp4">
+  </audio>
+  <div id="music" hidden>
+    <button id="sound" type="button" aria-pressed="false" aria-label="Play music">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6.2l10-2.2v11.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.6" cy="17.6" r="2.6" fill="currentColor"/><circle cx="16.6" cy="15.4" r="2.6" fill="currentColor"/></svg>
+      <i class="slash" aria-hidden="true"></i>
+    </button>
+    <span id="music-credit">Divenire (Ludovico Einaudi)</span>
+  </div>
+</div>
+<main id="track" aria-label="Scroll track"></main>
+
+<!-- phones: point to the mobile-friendly portfolio instead of loading the 3D tour -->
+<div id="phone-gate" role="dialog" aria-modal="true" aria-labelledby="pg-title" hidden>
+  <div class="pg-card">
+    <div class="pg-eyebrow">Nicolas Mello · Portfolio</div>
+    <h2 id="pg-title">View on a computer for a better experience</h2>
+    <p>This site is a scroll-driven 3D tour of my workshop, made for big screens. On your phone, my mobile-friendly portfolio has everything.</p>
+    <a class="pg-go" href="https://nmello3301.github.io/nmello3301.github.io-portfolio/">Open my portfolio →</a>
+    <button type="button" class="pg-skip" id="pg-skip">Continue to the 3D tour anyway</button>
+  </div>
+</div>
+
+<script>
+/* phones (touch screen, short side ≤ 600px) get a notice pointing to the mobile portfolio */
+(() => {
+  const isPhone = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) <= 600;
+  let skipped = false; try { skipped = sessionStorage.getItem("cw-tour-anyway") === "1"; } catch (e) {}
+  if (isPhone && !skipped) document.documentElement.classList.add("gated");
+})();
+
+/* =====================================================================
+   CONFIG — everything you'd want to tweak lives here.
+   Positions are percentages of the video frame (854×480 source).
+   ===================================================================== */
+const CONFIG = {
+  // 1080p for large screens, 720p for phones and small windows (both scrub-friendly H.264)
+  sources: [{ minWidth: 1000, src: "media/workshop_1080.mp4", bytes: 26792242 },
+            { minWidth: 0,    src: "media/workshop_720.mp4",  bytes: 16014365 }],
+  fps: 24,
+  frames: 721,                    // frame indices 0..720
+  // still sections of the video (0-based frames): the camera is parked here
+  holds: [[0, 72], [132, 205], [264, 336], [396, 467], [528, 600], [659, 720]],
+  labels: ["Welcome", "Software", "Hardware", "About", "Notes", "Contact"],
+  // scroll length of each stop / each camera move, relative to a standard move (1.0)
+  holdWeights: [0.6, 1.3, 1.3, 1.3, 1.3, 1.3],   // Welcome is short so the first scroll feels responsive
+  moveWeights: [1.25, 1, 1, 1, 1],              // 1.25 = Welcome → Projects plays at 80% speed
+  welcomeStow: [13, 39],          // Welcome hologram starts folding at F014, fully stowed by F040 (0-based frames)
+  sheetFade: [3, 2],
+  sheetInset: 0.15,               // note backings shrink 15% toward each paper's centre so they sit inside the corner pins              // frames for paper/whiteboard text to appear after arrival / vanish before leaving
+  unitVh: 0.55,                   // one "move" = 55% of the viewport height of scrolling
+  smoothing: 0.16,                // 0..1, higher = snappier scrubbing
+  snap: true,                     // gently snap to each stop
+  dockBelowAspect: 1.3,           // narrower screens dock the content at the bottom
+  holos: {                        // left/top/width in % of video; emitter = where the light beam starts
+    holo0: { left: 27, top: 19.5, width: 46, emitter: [51.5, 15.3] },
+    holo1: { left: 22, top: 6, width: 30, emitter: [37, -4] },
+    holo2: { left: 28, top: 43.5, width: 52, emitter: [54, 41.5] },   // hangs under the orb, over its projector beam
+    holo3: { left: 57, top: 5, width: 32, emitter: [73, -4] },
+  },
+  sheets: {                       // corners TL, TR, BR, BL in % of video
+    paperA: [[25.4, 7.6], [55.7, 7.2], [55.6, 48.0], [25.2, 48.4]],     // big blueprint, top-left
+    paperB: [[74.3, 17.5], [88.0, 17.2], [88.3, 45.6], [74.5, 45.7]],   // top-right
+    paperC: [[26.3, 61.6], [54.1, 61.9], [54.2, 86.4], [26.0, 85.8]],   // bottom-left
+    paperE: [[70.9, 53.9], [88.7, 54.0], [88.8, 75.6], [71.0, 75.8]],   // bottom-right
+    paperD: [[4.2, 17.0], [17.8, 17.4], [17.2, 45.6], [2.9, 45.5]],     // small corkboard by the whiteboard
+    board:  [[26.8, 19.5], [70.7, 21.9], [70.9, 72.0], [26.5, 73.9]],
+    paperN: [[67.0, 77.4], [83.4, 76.6], [83.8, 93.6], [67.4, 94.4]],   // note pinned at the bottom-right edge of the board (overhangs a little)
+  },
+};
+
+const $ = (s) => document.querySelector(s);
+const vid = $("#vid"), layer = $("#layer"), beams = $("#beams"), track = $("#track");
+const rail = $("#rail"), hint = $("#hint"), loader = $("#loader");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SRC_W = 1920, SRC_H = 1080;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ramp = (x, a, b) => clamp((x - a) / (b - a));
+const ease = (t) => t * t * (3 - 2 * t);
+
+/* ---------- scroll ↔ frame mapping (piecewise linear: stops get more scroll than moves) ---------- */
+const segs = []; // {u0,u1,f0,f1}
+(() => {
+  let u = 0;
+  CONFIG.holds.forEach(([a, b], k) => {
+    const hw = CONFIG.holdWeights[k];
+    segs.push({ u0: u, u1: u + hw, f0: a, f1: b, stop: k }); u += hw;
+    const next = CONFIG.holds[k + 1];
+    if (next) { const mw = CONFIG.moveWeights[k]; segs.push({ u0: u, u1: u + mw, f0: b, f1: next[0] }); u += mw; }
+  });
+})();
+const totalU = segs[segs.length - 1].u1;
+const frameAtU = (u) => {
+  for (const s of segs) if (u <= s.u1) return s.f0 + (s.f1 - s.f0) * clamp((u - s.u0) / (s.u1 - s.u0));
+  return CONFIG.frames - 1;
+};
+const stopCenterU = (k) => { const s = segs.find((x) => x.stop === k); return k === 0 ? 0 : (s.u0 + s.u1) / 2; };
+
+/* ---------- visibility of a stop's content at frame f ---------- */
+function stopP(k, f, sheet = false) {
+  const [a, b] = CONFIG.holds[k];
+  const last = k === CONFIG.holds.length - 1;
+  if (k === 0) return 1 - ramp(f, CONFIG.welcomeStow[0], CONFIG.welcomeStow[1]);
+  if (sheet) { // printed/handwritten text: there as soon as the camera parks, gone just before it moves
+    const [fin, fout] = CONFIG.sheetFade;
+    const pin = ramp(f, a - 1, a + fin);
+    const pout = last ? 1 : 1 - ramp(f, b - fout, b + 1);
+    return Math.min(pin, pout);
+  }
+  const pin = ramp(f, a - 1, a + 16);
+  const pout = last ? 1 : 1 - ramp(f, b - 14, b + 1);
+  return Math.min(pin, pout);
+}
+
+/* ---------- layout ---------- */
+let L = { vw: 0, vh: 0, w: 0, h: 0, x: 0, y: 0, unit: 0, docked: false };
+const holoEls = [...document.querySelectorAll(".holo")];
+const sheetEls = [...document.querySelectorAll(".sheet")];
+const snaps = [];
+const beamEls = {};
+
+function fitAffine(w, h, q) { // best flat (2D) fit of the w×h box onto quad q (TL,TR,BR,BL, px)
+  // 2D transforms keep text crisp; perspective (matrix3d) text gets cut up by Chrome's GPU compositor.
+  const src = [[0, 0], [w, 0], [w, h], [0, h]];
+  const solve = (col) => { // least squares for [p, q, r] in  out = p*X + q*Y + r
+    let A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], B = [0, 0, 0];
+    src.forEach(([X, Y], i) => { const r = [X, Y, 1]; for (let m = 0; m < 3; m++) { B[m] += r[m] * q[i][col]; for (let n = 0; n < 3; n++) A[m][n] += r[m] * r[n]; } });
+    const det = (M) => M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+    const D = det(A);
+    return [0, 1, 2].map((k) => det(A.map((row, i) => row.map((v, j) => (j === k ? B[i] : v)))) / D);
+  };
+  const [a, c, e] = solve(0), [b, d, f] = solve(1);
+  return `matrix(${a},${b},${c},${d},${e},${f})`;
+}
+
+function layout() {
+  const vw = innerWidth, vh = innerHeight;
+  const s = Math.max(vw / SRC_W, vh / SRC_H);
+  const w = SRC_W * s, h = SRC_H * s;
+  L = { vw, vh, w, h, x: (vw - w) / 2, y: (vh - h) / 2, unit: w / 100, docked: vw / vh < CONFIG.dockBelowAspect || vw < 760 };
+  document.documentElement.classList.toggle("docked", L.docked);
+  Object.assign(layer.style, { left: L.x + "px", top: L.y + "px", width: w + "px", height: h + "px" });
+  beams.setAttribute("width", w); beams.setAttribute("height", h); beams.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+  // scroll track + snap points
+  const U = vh * CONFIG.unitVh;
+  track.style.height = totalU * U + vh + "px";
+  snaps.forEach((el) => el.remove()); snaps.length = 0;
+  if (CONFIG.snap) CONFIG.holds.forEach((_, k) => {
+    const el = document.createElement("div"); el.className = "snap"; el.style.top = stopCenterU(k) * U + "px";
+    track.appendChild(el); snaps.push(el);
+  });
+
+  const pad = 16;
+  holoEls.forEach((el) => {
+    const c = CONFIG.holos[el.id];
+    if (L.docked) {
+      const width = Math.min(vw - 2 * pad, 520);
+      el.style.setProperty("--u", width / 31 + "px");
+      el.style.width = width + "px";
+      const hgt = el.offsetHeight;
+      const top = el.id === "holo0" ? vh * 0.14 : vh - hgt - pad;
+      el.style.left = -L.x + (vw - width) / 2 + "px";
+      el.style.top = -L.y + top + "px";
+      el._beam = null;
+    } else {
+      el.style.setProperty("--u", L.unit + "px");
+      const width = (c.width * w) / 100;
+      el.style.width = width + "px";
+      let left = (c.left * w) / 100;
+      const minL = -L.x + pad, maxL = -L.x + vw - pad - width;
+      left = clamp(left, minL, Math.max(minL, maxL));
+      const top = (c.top * h) / 100;
+      el.style.left = left + "px"; el.style.top = top + "px";
+      el._beam = { ex: (c.emitter[0] * w) / 100, ey: (c.emitter[1] * h) / 100, l: left, r: left + width, t: top };
+    }
+  });
+
+  sheetEls.forEach((el, i) => {
+    if (L.docked) {
+      el.style.transform = "none";
+      const width = Math.min(vw - 2 * pad, 520);
+      Object.assign(el.style, { width: width + "px", height: "auto" });
+    } else {
+      let q = CONFIG.sheets[el.id].map(([px, py]) => [(px * w) / 100, (py * h) / 100]);
+      if (el.classList.contains("paper")) { // pull the note backing inside the paper edges
+        const cx = q.reduce((t, p) => t + p[0], 0) / 4, cy = q.reduce((t, p) => t + p[1], 0) / 4, k = 1 - CONFIG.sheetInset;
+        q = q.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]);
+      }
+      const qw = Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]);
+      const qh = Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]);
+      const W = (qw / w) * 1400, H = (W * qh) / qw; // same print size on every sheet
+      Object.assign(el.style, { width: W + "px", height: H + "px", left: "0px", top: "0px", transform: fitAffine(W, H, q) });
+    }
+  });
+  if (L.docked) { // stack each stop's sheets from the bottom up
+    const byStop = {};
+    sheetEls.forEach((el) => (byStop[el.dataset.stop] ||= []).push(el));
+    Object.values(byStop).forEach((list) => {
+      let bottom = vh - pad;
+      [...list].reverse().forEach((el) => {
+        const hgt = el.offsetHeight;
+        el.style.left = -L.x + (vw - el.offsetWidth) / 2 + "px";
+        el.style.top = -L.y + bottom - hgt + "px";
+        bottom -= hgt + 10;
+      });
+    });
+  }
+  buildBeams();
+  render(true);
+}
+
+function buildBeams() {
+  beams.innerHTML = "<defs></defs>";
+  const defs = beams.querySelector("defs");
+  holoEls.forEach((el) => {
+    const b = el._beam; if (!b) { beamEls[el.id] = null; return; }
+    const id = "g-" + el.id;
+    defs.insertAdjacentHTML("beforeend",
+      `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${b.ex}" y1="${b.ey}" x2="${(b.l + b.r) / 2}" y2="${b.t}">
+         <stop offset="0" stop-color="#bff8ff" stop-opacity=".55"/><stop offset="1" stop-color="#8ff4ff" stop-opacity=".07"/></linearGradient>
+       <radialGradient id="${id}-dot"><stop offset="0" stop-color="#eaffff" stop-opacity=".95"/><stop offset="1" stop-color="#8ff4ff" stop-opacity="0"/></radialGradient>`);
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.innerHTML = `<polygon points="${b.ex},${b.ey} ${b.r},${b.t} ${b.l},${b.t}" fill="url(#${id})"/>
+                   <circle cx="${b.ex}" cy="${b.ey}" r="${L.unit * 1.6}" fill="url(#${id}-dot)"/>`;
+    beams.appendChild(g); beamEls[el.id] = g;
+  });
+}
+
+/* ---------- render ---------- */
+let target = 0, cur = 0, shown = -1, ready = false, lastF = -1;
+
+function render(force) {
+  const f = cur;
+  if (!force && Math.abs(f - lastF) < 0.01) return;
+  lastF = f;
+  holoEls.forEach((el) => {
+    const p = stopP(+el.dataset.stop, f);
+    if (p <= 0) { el.style.visibility = "hidden"; if (beamEls[el.id]) beamEls[el.id].style.opacity = 0; return; }
+    const sx = ease(ramp(p, 0, 0.35)), sy = ease(ramp(p, 0.2, 0.65));
+    el.style.visibility = "visible";
+    el.style.opacity = Math.min(1, p * 3);
+    el.style.scale = `${0.04 + 0.96 * sx} ${0.015 + 0.985 * sy}`;
+    el.querySelector(".c").style.opacity = ramp(p, 0.55, 1);
+    if (beamEls[el.id]) beamEls[el.id].style.opacity = ramp(p, 0, 0.3);
+  });
+  sheetEls.forEach((el) => {
+    const p = stopP(+el.dataset.stop, f, true);
+    el.style.visibility = p > 0 ? "visible" : "hidden";
+    el.style.opacity = ease(p);
+  });
+  // HUD
+  let active = 0, best = 1e9;
+  CONFIG.holds.forEach(([a, b], k) => { const d = f < a ? a - f : f > b ? f - b : 0; if (d < best) { best = d; active = k; } });
+  rail.querySelectorAll("button").forEach((btn, k) => btn.setAttribute("aria-current", k === active ? "step" : "false"));
+  fc.textContent = `F ${String(Math.round(f) + 1).padStart(3, "0")} / ${CONFIG.frames}`;
+  hint.style.opacity = f > 8 ? 0 : 1;
+}
+
+function readScroll() {
+  const max = track.offsetHeight - innerHeight;
+  const u = max > 0 ? (scrollY / max) * totalU : 0;
+  target = clamp(frameAtU(u), 0, CONFIG.frames - 1);
+}
+
+function tick() {
+  const k = reduceMotion ? 1 : CONFIG.smoothing;
+  cur += (target - cur) * k;
+  if (Math.abs(target - cur) < 0.02) cur = target;
+  render(false);
+  const want = Math.round(cur);
+  if (ready && want !== shown && !vid.seeking) {
+    vid.currentTime = (want + 0.5) / CONFIG.fps;
+    shown = want;
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- HUD rail ---------- */
+CONFIG.labels.forEach((label, k) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.id = "stop-" + k;
+  b.innerHTML = `<span>${label}</span>`;
+  b.setAttribute("aria-label", "Go to " + label);
+  b.addEventListener("click", () => {
+    const U = innerHeight * CONFIG.unitVh;
+    scrollTo({ top: stopCenterU(k) * U, behavior: reduceMotion ? "auto" : "smooth" });
+  });
+  rail.appendChild(b);
+});
+const fc = document.createElement("div"); fc.className = "fc"; rail.appendChild(fc);
+
+/* ---------- video loading: pull the whole file into memory so scrubbing never stalls ---------- */
+async function loadVideo() {
+  const done = () => new Promise((res) => {
+    if (vid.readyState >= 2) return res();
+    vid.addEventListener("loadeddata", res, { once: true });
+  });
+  try {
+    const pick = CONFIG.sources.find((v) => innerWidth >= v.minWidth) || CONFIG.sources[CONFIG.sources.length - 1];
+    const r = await fetch(pick.src);
+    if (!r.ok || !r.body) throw new Error("fetch failed");
+    const total = +r.headers.get("content-length") || pick.bytes;
+    const reader = r.body.getReader(); const parts = []; let got = 0;
+    for (;;) {
+      const { done: end, value } = await reader.read(); if (end) break;
+      parts.push(value); got += value.length;
+      loader.textContent = `Loading workshop · ${Math.min(99, Math.round((got / total) * 100))}%`;
+    }
+    vid.src = URL.createObjectURL(new Blob(parts, { type: "video/mp4" }));
+  } catch (e) {
+    const pick = CONFIG.sources.find((v) => innerWidth >= v.minWidth) || CONFIG.sources[CONFIG.sources.length - 1];
+    vid.src = pick.src; // opened from disk (file://) or no streaming: let the browser fetch it
+  }
+  await done();
+  try { await vid.play(); vid.pause(); } catch (e) { /* autoplay refused: seeking still works */ }
+  ready = true; shown = -1;
+  loader.style.opacity = 0;
+}
+
+/* ---------- background music: plays across the whole site, toggled by the round ♪ button ---------- */
+(() => {
+  const bgm = document.getElementById("bgm"), wrap = document.getElementById("music"), btn = document.getElementById("sound");
+  const KEY = "cw-music";                     // remembers if a visitor switched the music off
+  const prefOff = () => { try { return localStorage.getItem(KEY) === "off"; } catch (e) { return false; } };
+  const savePref = (v) => { try { localStorage.setItem(KEY, v); } catch (e) {} };
+  const TARGET = 0.45;                        // background level (the recording is mastered loud)
+  let fadeTimer = null, userStopped = prefOff();
+  const fadeTo = (v, ms, done) => {
+    clearInterval(fadeTimer); const start = bgm.volume, t0 = performance.now();
+    fadeTimer = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); bgm.volume = start + (v - start) * k; if (k >= 1) { clearInterval(fadeTimer); done && done(); } }, 40);
+  };
+  const setUI = (on) => { btn.setAttribute("aria-pressed", on ? "true" : "false"); btn.setAttribute("aria-label", on ? "Pause music" : "Play music"); };
+  const flashCredit = () => { wrap.classList.add("show-credit"); setTimeout(() => wrap.classList.remove("show-credit"), 4000); };
+  async function start() {
+    if (document.documentElement.classList.contains("gated")) return false;   // phone notice is showing
+    try { bgm.volume = 0; await bgm.play(); setUI(true); fadeTo(TARGET, 2000); flashCredit(); return true; }
+    catch (e) { setUI(false); return false; }   // browser wants a click/tap first
+  }
+  function stop() { setUI(false); fadeTo(0, 500, () => bgm.pause()); }
+  // reveal the button once the recording is available
+  // nothing is downloaded until the music actually starts (preload="none"); hide the button if the file is missing
+  if (!document.documentElement.classList.contains("gated")) { wrap.hidden = false; document.querySelectorAll(".needs-audio").forEach((el) => (el.hidden = false)); }
+  bgm.querySelector("source:last-of-type").addEventListener("error", () => { wrap.hidden = true; document.querySelectorAll(".needs-audio").forEach((el) => (el.hidden = true)); });
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (bgm.paused) { userStopped = false; savePref("on"); start(); }
+    else { userStopped = true; savePref("off"); stop(); }
+  });
+  // music is on by default: try right away, otherwise start on the visitor's first click, tap or key press
+  const GESTURES = ["pointerdown", "keydown", "touchend"];
+  const firstGesture = (e) => {
+    if (wrap.contains(e.target) || document.documentElement.classList.contains("gated")) return;
+    GESTURES.forEach((ev) => removeEventListener(ev, firstGesture));
+    if (!userStopped && bgm.paused) start();
+  };
+  GESTURES.forEach((ev) => addEventListener(ev, firstGesture, { passive: true }));
+  if (!userStopped) start();
+  window.cwMusicReady = () => { wrap.hidden = false; document.querySelectorAll(".needs-audio").forEach((el) => (el.hidden = false)); };
+  // pause while the tab is hidden, resume when it comes back
+  let wasPlaying = false;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { wasPlaying = !bgm.paused; if (wasPlaying) bgm.pause(); }
+    else if (wasPlaying && !userStopped) start();
+  });
+})();
+
+addEventListener("scroll", readScroll, { passive: true });
+addEventListener("resize", () => { layout(); readScroll(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layout());
+layout(); readScroll(); cur = target; render(true);
+requestAnimationFrame(tick);
+/* ---------- phones: show the notice instead of loading the tour (decided at the top of this script) ---------- */
+if (document.documentElement.classList.contains("gated")) {
+  document.getElementById("phone-gate").hidden = false;
+  document.getElementById("pg-skip").addEventListener("click", () => {
+    try { sessionStorage.setItem("cw-tour-anyway", "1"); } catch (e) {}
+    document.getElementById("phone-gate").hidden = true;
+    document.documentElement.classList.remove("gated");
+    window.cwMusicReady && window.cwMusicReady();
+    layout(); readScroll(); loadVideo();
+  });
+} else {
+  loadVideo();
+}
+</script>
+</body>
+</html>
