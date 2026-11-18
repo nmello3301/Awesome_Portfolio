@@ -137,7 +137,7 @@ body { background: var(--night); color: var(--holo-text); font-family: var(--f-b
 #holo1 .row p { font-size: .92em; }
 .hw { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 1.2em; align-items: end; }
 .hw figure { margin: 0; display: grid; gap: .35em; }
-.hw img { display: block; height: calc(var(--u) * 15); width: auto; max-width: none; border: 1px solid rgba(150, 245, 255, .55); box-shadow: 0 0 calc(var(--u) * .8) rgba(90, 230, 255, .3); }
+.hw img, .hw video { display: block; height: calc(var(--u) * 15); width: auto; max-width: none; border: 1px solid rgba(150, 245, 255, .55); box-shadow: 0 0 calc(var(--u) * .8) rgba(90, 230, 255, .3); }
 .hw figcaption { font-family: var(--f-mono); font-size: .72em; letter-spacing: .06em; color: var(--holo); }
 .hw h2 { font-size: 1.7em; }
 .sheet a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
@@ -170,7 +170,7 @@ body { background: var(--night); color: var(--holo-text); font-family: var(--f-b
 .docked #sound { width: 38px; height: 38px; }
 .docked .hw { grid-template-columns: 1fr 1fr; }
 .docked .hw-text { grid-column: 1 / -1; }
-.docked .hw img { height: auto; width: 100%; max-width: 100%; }
+.docked .hw img, .docked .hw video { height: auto; width: 100%; max-width: 100%; }
 
 /* ---------- phone notice ---------- */
 html.gated, html.gated body { overflow: hidden; }
@@ -235,8 +235,8 @@ html.gated #rail, html.gated #hint, html.gated #loader, html.gated #music, html.
           <div class="row">
             <span class="when">MS research · USP-IME · 2024–present</span>
             <h3><a href="https://nmello3301.github.io/VLA-Distillation/" target="_blank" rel="noopener">Adaptive &amp; Uncertainty-Gated VLA Distillation ↗</a></h3>
-            <p>An Octo VLA teacher distilled into a compact RL student on a parallelized Franka Panda arm in IsaacSim.</p>
-            <div class="tags">PyTorch · IsaacSim · Octo · LoRA · RL</div>
+            <p>An Octo VLA teacher distilled into a compact RL student on a parallelized Franka Panda arm in Isaac Lab.</p>
+            <div class="tags">PyTorch · Isaac Lab · Octo · LoRA · RL</div>
           </div>
           <div class="row">
             <span class="when">Ongoing</span>
@@ -256,11 +256,11 @@ html.gated #rail, html.gated #hint, html.gated #loader, html.gated #music, html.
         <div class="hw-text">
           <div class="eyebrow"><span>Hardware Projects</span></div>
           <h2>Yes, I’m building a robot at home.</h2>
-          <p>A 6-DoF robotic arm built from scratch: CAD, gearing, firmware, and the policy that drives it.</p>
+          <p>A working 6-DoF robotic arm built from scratch: CAD, gearing, firmware, and the policy that drives it. Completed in November 2026; the next revision targets lower backlash and more torque.</p>
           <p>All the actuators were designed, printed and built by me.</p>
-          <div class="tags">Onshape · ESP32 · CAN Bus · IsaacSim · ManiSkill · Sim2Real</div>
+          <div class="tags">Onshape · ESP32 · CAN Bus · Isaac Lab · ManiSkill · Sim2Real</div>
         </div>
-        <figure><img src="media/img/arm_built.jpg" alt="The 6-DoF robotic arm, assembled on a desk at home" loading="lazy"><figcaption>The arm, assembled</figcaption></figure>
+        <figure><video src="media/arm-6dof.mp4" poster="media/arm-6dof-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="The 6-DoF robotic arm moving"></video><figcaption>The arm, moving</figcaption></figure>
         <figure><img src="media/img/arm_sim.jpg" alt="The arm's simulation clone, used for Sim2Real" loading="lazy"><figcaption>Its Sim2Real clone</figcaption></figure>
       </div>
     </section>
@@ -282,7 +282,7 @@ html.gated #rail, html.gated #hint, html.gated #loader, html.gated #music, html.
       <h4>Résumé</h4>
       <ul>
         <li>UCSD Jacobs, BS EE with Machine-Learning depth, 2023</li>
-        <li>Masters in Computer Science and AI at USP (expected to graduate December 2026)</li>
+        <li>Masters in Computer Science and AI at USP (expected to graduate January 2027)</li>
         <li>Worked at IBM Research Brazil Lab, 2024–2025</li>
         <li>Danfoss Drives, International Trainee, 2023</li>
       </ul>
@@ -302,7 +302,7 @@ html.gated #rail, html.gated #hint, html.gated #loader, html.gated #music, html.
     </div>
     <div class="sheet paper" id="paperE" data-stop="4" style="--bk: rgba(232,203,176,.93); font-size: 12px">
       <h4>Toolbox</h4>
-      <p class="stack">Docker · CAD · CUDA · PyTorch · VLA · MCP · ComfyUI · CAN Bus · ESP32 · IsaacSim · LoRA · Kubernetes · and more</p>
+      <p class="stack">Docker · CAD · CUDA · PyTorch · VLA · MCP · ComfyUI · CAN Bus · ESP32 · Isaac Lab · LoRA · Kubernetes · and more</p>
     </div>
 
     <!-- STOP 5 · whiteboard, written in the tray's three marker colours -->
